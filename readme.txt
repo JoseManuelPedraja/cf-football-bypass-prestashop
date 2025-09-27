@@ -59,9 +59,8 @@ Herramientas adicionales
 
 1. Descarga e instalacion
    - Descarga el archivo zip del plugin
-   - Ve a tu panel de WordPress > Plugins > Anadir nuevo > Subir plugin
-   - Selecciona el archivo zip y haz clic en "Instalar ahora"
-   - Activa el plugin
+   - Descomprime (o sube la carpeta resultante) en `wp-content/plugins/cf-football-bypass/`
+   - Ve a tu panel de WordPress > Plugins > CF Football Bypass > Activar
 
 2. Configuracion de Cloudflare
    - Ve a Ajustes > CF Football Bypass
