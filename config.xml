@@ -4,7 +4,7 @@
     <displayName><![CDATA[CF Football Bypass]]></displayName>
     <version><![CDATA[1.5.4]]></version>
     <description><![CDATA[Opera con Cloudflare para alternar Proxy (ON/CDN) y DNS Only (OFF) según bloqueos, con caché persistente de registros y acciones AJAX.]]></description>
-    <author><![CDATA[Jose Manuel Pedraaja]]></author>
+    <author><![CDATA[Jose Manuel Pedraja]]></author>
     <tab><![CDATA[administration]]></tab>
     <confirmUninstall><![CDATA[¿Estás seguro de que deseas desinstalar este módulo?]]></confirmUninstall>
     <is_configurable>1</is_configurable>
