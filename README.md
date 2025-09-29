@@ -1,3 +1,12 @@
+![PrestaShop](https://badgen.net/badge/PrestaShop/8.x/blue)
+![PHP](https://badgen.net/badge/PHP/8.0%20%7C%208.1/8892BF)
+![Último Release](https://badgen.net/github/release/JoseManuelPedraja/smartbanner?include_prereleases)
+![Licencia](https://badgen.net/github/license/JoseManuelPedraja/smartbanner)
+![Descargas](https://badgen.net/github/assets-dl/JoseManuelPedraja/smartbanner)
+![Estrellas](https://badgen.net/github/stars/JoseManuelPedraja/smartbanner)
+![Forks](https://badgen.net/github/forks/JoseManuelPedraja/smartbanner)
+
+
 # CF Football Bypass
 
 PrestaShop plugin that automates switching between **Proxied** and **DNS Only** mode in Cloudflare when massive blocks are enforced during football matches.  
