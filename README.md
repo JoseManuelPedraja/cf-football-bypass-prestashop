@@ -7,31 +7,42 @@
 ![Forks](https://badgen.net/github/forks/JoseManuelPedraja/cf-football-bypass-prestashop)
 
 
-# CF Football Bypass
+# ⚽ CF Football Bypass para PrestaShop
 
-PrestaShop plugin that automates switching between **Proxied** and **DNS Only** mode in Cloudflare when massive blocks are enforced during football matches.  
+Módulo de PrestaShop que automatiza el cambio entre los modos **Proxied** y **DNS Only** en Cloudflare cuando se aplican bloqueos masivos durante partidos de fútbol.  
 
-It fetches the feed from [hayahora.futbol](https://hayahora.futbol/) and enables/disables the selected records to keep your legitimate site accessible, with a configurable cooldown period before re-enabling Cloudflare.
-
----
-
-## 🚀 Quick Installation
-
-1. Download the ZIP from [GitHub](https://github.com/dcarrero/cf-football-bypass).  
-2. Upload the `cf-football-bypass` folder to `wp-content/plugins/` (it will end up as `plugins/cf-football-bypass/`).  
-3. Activate the plugin from **Plugins > Installed Plugins**.  
-4. Configure your Cloudflare credentials under **Settings > CF Football Bypass**, adjust:
-   - The check interval  
-   - The cooldown period after disabling Cloudflare  
-   - The DNS records to manage  
+El módulo obtiene el feed de [hayahora.futbol](https://hayahora.futbol/) y activa/desactiva los registros DNS seleccionados para mantener accesible tu tienda legítima, con un periodo de enfriamiento configurable antes de reactivar Cloudflare.  
 
 ---
 
-## 👨‍💻 Original Author & WordPress Support
+## 🚀 Instalación rápida
 
-- **Author:** David Carrero ([@carrero](https://x.com/carrero))  
-- **Website:** [carrero.es](https://carrero.es)  
-- **Quick contact:** [carrero.es/contacto](https://carrero.es/contacto/)  
+1. Descarga el archivo ZIP desde [GitHub](https://github.com/dcarrero/cf-football-bypass).  
+2. Copia la carpeta `cf-football-bypass` en el directorio de módulos de tu PrestaShop:  
+3. Desde el **Back Office** de PrestaShop, ve a **Módulos > Gestor de módulos** y activa **CF Football Bypass**.  
+4. Configura el módulo en **Parámetros Avanzados > CF Football Bypass**, donde podrás ajustar:  
+- El intervalo de comprobación  
+- El periodo de enfriamiento tras desactivar Cloudflare  
+- Los registros DNS que quieres gestionar  
+
+---
+
+## ⚙️ Requisitos
+
+- PrestaShop 8 o superior  
+- Cuenta activa en Cloudflare  
+- Acceso a API de Cloudflare con permisos para gestionar DNS  
+
+---
+
+## 👨‍💻 Autor original y soporte WordPress
+
+- **Autor original:** David Carrero ([@carrero](https://x.com/carrero))  
+- **Sitio web:** [carrero.es](https://carrero.es)  
+- **Contacto rápido:** [carrero.es/contacto](https://carrero.es/contacto/)  
+
+> ⚠️ Nota: Este módulo ha sido adaptado de su versión original para WordPress a PrestaShop con permiso del autor y es completamente gratuito.
+
 
 ---
 
