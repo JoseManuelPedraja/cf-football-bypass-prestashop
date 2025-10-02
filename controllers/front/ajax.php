@@ -13,20 +13,18 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
     public function initContent()
     {
         parent::initContent();
-        
-        // Para peticiones AJAX, no renderizar el tema
-        if (Tools::getValue('ajax')) {
-            $this->ajax = true;
-        }
+        $this->ajax = true;
     }
 
     public function displayAjax()
     {
-        // Verificar que sea un empleado autenticado
+        header('Content-Type: application/json');
+        
+        // Verificar autenticación
         if (!$this->isValidEmployee()) {
             die(json_encode([
                 'success' => false,
-                'message' => 'Acceso denegado'
+                'message' => 'Acceso denegado. Por favor recarga la página del backoffice.'
             ]));
         }
 
@@ -64,10 +62,24 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
 
     private function isValidEmployee()
     {
+        // Verificar cookie de empleado
         $context = Context::getContext();
-        return (isset($context->employee) && 
-                $context->employee->isLoggedBack() && 
-                Validate::isLoadedObject($context->employee));
+        
+        if (isset($context->employee) && Validate::isLoadedObject($context->employee)) {
+            return true;
+        }
+        
+        // Método alternativo: verificar cookie directamente
+        if (isset($_COOKIE['id_employee']) && isset($_COOKIE['passwd_employee'])) {
+            $id_employee = (int)$_COOKIE['id_employee'];
+            $employee = new Employee($id_employee);
+            
+            if (Validate::isLoadedObject($employee)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private function testConnection()
@@ -92,13 +104,13 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
 
             // Test authentication
             $trace = [];
-            $test_result = $this->quickSettingsTest($settings, $trace);
+            $test_result = $module->quickSettingsTest($settings, $trace);
             $log = array_merge($log, $trace);
             
             if ($test_result) {
                 // Load DNS records
                 $log[] = 'Cargando registros DNS...';
-                $records = $this->fetchDnsRecords($settings, ['A', 'AAAA', 'CNAME']);
+                $records = $module->fetchDnsRecords(['A', 'AAAA', 'CNAME']);
                 
                 if (!empty($records)) {
                     $settings['dns_records_cache'] = json_encode($records);
@@ -226,7 +238,7 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
             $settings = $this->getSettings();
             
             // Refresh DNS cache
-            $records = $this->fetchDnsRecords($settings, ['A', 'AAAA', 'CNAME']);
+            $records = $module->fetchDnsRecords(['A', 'AAAA', 'CNAME']);
             if (!empty($records)) {
                 $settings['dns_records_cache'] = json_encode($records);
                 $settings['dns_cache_last_sync'] = date('Y-m-d H:i:s');
@@ -373,7 +385,7 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
         return $html;
     }
 
-    // Helper methods from main module
+    // Helper methods
     private function getSettings()
     {
         $defaults = [
@@ -428,23 +440,5 @@ class CfFootballBypassAjaxModuleFrontController extends ModuleFrontController
             return str_repeat('*', max(0, $len));
         }
         return substr($str, 0, $left) . str_repeat('*', $len - $left - $right) . substr($str, -$right);
-    }
-
-    private function quickSettingsTest($settings, &$trace)
-    {
-        $module = Module::getInstanceByName('cffootballbypass');
-        if ($module && method_exists($module, 'quickSettingsTest')) {
-            return $module->quickSettingsTest($settings, $trace);
-        }
-        return false;
-    }
-
-    private function fetchDnsRecords($settings, $types)
-    {
-        $module = Module::getInstanceByName('cffootballbypass');
-        if ($module && method_exists($module, 'fetchDnsRecords')) {
-            return $module->fetchDnsRecords($types);
-        }
-        return [];
     }
 }
