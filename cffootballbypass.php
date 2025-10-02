@@ -553,7 +553,7 @@ class CfFootballBypass extends Module
         file_put_contents($this->log_file_path, $line, FILE_APPEND | LOCK_EX);
     }
 
-    private function quickSettingsTest($settings, &$trace)
+    public function quickSettingsTest($settings, &$trace)
     {
         if (empty($settings['cloudflare_api_key'])) {
             $trace[] = 'Falta API Key/Token.';
@@ -644,7 +644,7 @@ class CfFootballBypass extends Module
         ];
     }
 
-    private function computeStatusesFromJson()
+    public function computeStatusesFromJson()
     {
         $domain = $this->getSiteDomain();
         $data = $this->fetchStatusJson();
@@ -821,7 +821,7 @@ class CfFootballBypass extends Module
         ]);
     }
 
-    private function refreshDnsCache()
+    public function refreshDnsCache()
     {
         $settings = $this->getSettings();
         $records = $this->fetchDnsRecords(['A', 'AAAA', 'CNAME']);
@@ -835,7 +835,7 @@ class CfFootballBypass extends Module
         return $records;
     }
 
-    private function fetchDnsRecords($allowed_types = ['A', 'AAAA', 'CNAME'])
+    public function fetchDnsRecords($allowed_types = ['A', 'AAAA', 'CNAME'])
     {
         $settings = $this->getSettings();
         if (empty($settings['cloudflare_api_key']) || empty($settings['cloudflare_zone_id'])) {
@@ -872,7 +872,7 @@ class CfFootballBypass extends Module
         return $records;
     }
 
-    private function updateRecordProxyStatus($record_id, $proxied_on)
+    public function updateRecordProxyStatus($record_id, $proxied_on)
     {
         $settings = $this->getSettings();
         $cache = json_decode($settings['dns_records_cache'], true) ?: [];
