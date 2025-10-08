@@ -6,7 +6,6 @@
 ![Estrellas](https://badgen.net/github/stars/JoseManuelPedraja/cf-football-bypass-prestashop)
 ![Forks](https://badgen.net/github/forks/JoseManuelPedraja/cf-football-bypass-prestashop)
 
-### NO USAR DE MOMENTO!!!
 
 # ⚽ CF Football Bypass para PrestaShop
 
