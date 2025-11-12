@@ -1,11 +1,16 @@
 <?php
 /**
- * Cron endpoint for CF Football Bypass
- * 
- * Call this file via cron job or external service:
- * curl "https://yourstore.com/modules/cffootballbypass/cron.php?token=YOUR_SECRET_TOKEN"
+ * 2007-2025 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ *
+ * @author    Jose Manuel Pedraja <tu@email.com>
+ * @copyright 2007-2025 PrestaShop SA
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-
 // Include PrestaShop configuration
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 

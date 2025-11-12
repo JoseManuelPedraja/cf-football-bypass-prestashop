@@ -1,8 +1,4 @@
 <?php
-/**
- * AJAX Controller for CF Football Bypass
- * Location: modules/cffootballbypass/controllers/front/ajax.php
- */
 
 if (!defined('_PS_VERSION_')) {
     exit;

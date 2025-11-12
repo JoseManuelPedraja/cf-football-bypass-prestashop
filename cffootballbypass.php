@@ -13,7 +13,7 @@ class CfFootballBypass extends Module
     {
         $this->name = 'cffootballbypass';
         $this->tab = 'administration';
-        $this->version = '1.5.4';
+        $this->version = '1.5.5'; 
         $this->author = 'Jose Manuel Pedraja';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
@@ -25,7 +25,7 @@ class CfFootballBypass extends Module
         parent::__construct();
 
         $this->displayName = $this->l('CF Football Bypass');
-        $this->description = $this->l('Opera con Cloudflare para alternar Proxy (ON/CDN) y DNS Only (OFF) según bloqueos, con caché persistente de registros.');
+        $this->description = $this->l('Operates with Cloudflare to toggle Proxy (ON/CDN) and DNS Only (OFF) based on blocks, with persistent record caching.');
         $this->confirmUninstall = $this->l('¿Estás seguro de que deseas desinstalar este módulo?');
 
         $this->log_file_path = _PS_MODULE_DIR_ . $this->name . '/logs/cfb-actions.log';
@@ -61,14 +61,14 @@ class CfFootballBypass extends Module
         foreach (Language::getLanguages(true) as $lang) {
             $tab->name[$lang['id_lang']] = 'CF Football Bypass';
         }
-        $tab->id_parent = (int)Tab::getIdFromClassName('AdminTools');
+        $tab->id_parent = (int)Tab::getIdFromClassName('AdminParentModulesSf');
         $tab->module = $this->name;
         return $tab->add();
     }
 
     private function uninstallTab()
     {
-        $id_tab = (int)Tab::getIdFromClassName('AdminCfFootballBypass');
+        $id_tab = Tab::getInstanceFromClassName('AdminCfFootballBypass')->id;
         if ($id_tab) {
             $tab = new Tab($id_tab);
             return $tab->delete();
