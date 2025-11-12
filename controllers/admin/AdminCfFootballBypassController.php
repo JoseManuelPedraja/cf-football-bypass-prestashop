@@ -402,5 +402,3 @@ class AdminCfFootballBypassAjaxController extends ModuleAdminController
         return substr($str, 0, $left) . str_repeat('*', $len - $left - $right) . substr($str, -$right);
     }
 }
-3. ACTUALIZA el archivo JavaScript views/js/admin.js
-Cambia la URL de AJAX (busca la función makeAjaxCall y modifica la URL):
