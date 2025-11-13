@@ -1,56 +1,54 @@
 ![PrestaShop](https://badgen.net/badge/PrestaShop/8.x/blue)
 ![PHP](https://badgen.net/badge/PHP/8.0%20%7C%208.1/8892BF)
-![Último Release](https://badgen.net/github/release/josemanuelpedraja/cf-football-bypass-prestashop?include_prereleases)
-![Licencia](https://badgen.net/github/license/JoseManuelPedraja/cf-football-bypass-prestashop)
-![Descargas](https://img.shields.io/github/downloads/JoseManuelPedraja/cf-football-bypass-prestashop/total)
-![Estrellas](https://badgen.net/github/stars/JoseManuelPedraja/cf-football-bypass-prestashop)
+![Latest Release](https://badgen.net/github/release/josemanuelpedraja/cf-football-bypass-prestashop?include_prereleases)
+![License](https://badgen.net/github/license/JoseManuelPedraja/cf-football-bypass-prestashop)
+![Downloads](https://img.shields.io/github/downloads/JoseManuelPedraja/cf-football-bypass-prestashop/total)
+![Stars](https://badgen.net/github/stars/JoseManuelPedraja/cf-football-bypass-prestashop)
 ![Forks](https://badgen.net/github/forks/JoseManuelPedraja/cf-football-bypass-prestashop)
 
+# ⚽ CF Football Bypass for PrestaShop
 
-# ⚽ CF Football Bypass para PrestaShop
+A PrestaShop module that automates switching between **Proxied** and **DNS Only** modes in Cloudflare during massive blocking events on football match days.
 
-Módulo de PrestaShop que automatiza el cambio entre los modos **Proxied** y **DNS Only** en Cloudflare cuando se aplican bloqueos masivos durante partidos de fútbol.  
-
-El módulo obtiene el feed de [hayahora.futbol](https://hayahora.futbol/) y activa/desactiva los registros DNS seleccionados para mantener accesible tu tienda legítima, con un periodo de enfriamiento configurable antes de reactivar Cloudflare.  
-
----
-
-## 🚀 Instalación rápida
-
-1. Descarga el archivo ZIP desde [GitHub](https://github.com/JoseManuelPedraja/cf-football-bypass-prestashop/releases).  
-2. Copia la carpeta `cffootballbypass` en el directorio de módulos de tu PrestaShop:  
-3. Desde el **Back Office** de PrestaShop, ve a **Módulos > Gestor de módulos** y activa **CF Football Bypass**.  
-4. Configura el módulo en **Parámetros Avanzados > CF Football Bypass**, donde podrás ajustar:  
-- El intervalo de comprobación  
-- El periodo de enfriamiento tras desactivar Cloudflare  
-- Los registros DNS que quieres gestionar  
+The module fetches the feed from [hayahora.futbol](https://hayahora.futbol/) and enables/disables the selected DNS records to keep your legitimate store accessible, with a configurable cooldown period before reactivating Cloudflare.
 
 ---
 
-## ⚙️ Requisitos
+## 🚀 Quick Installation
 
-- PrestaShop 8 o superior  
-- Cuenta activa en Cloudflare  
-- Acceso a API de Cloudflare con permisos para gestionar DNS  
-
----
-
-## 👨‍💻 Autor original y soporte WordPress
-
-- **Autor original:** David Carrero ([@carrero](https://x.com/carrero))  
-- **Sitio web:** [carrero.es](https://carrero.es)  
-- **Contacto rápido:** [carrero.es/contacto](https://carrero.es/contacto/)  
-
-> ⚠️ Nota: Este módulo ha sido adaptado de su versión original para WordPress a PrestaShop con permiso del autor y es completamente gratuito.
-
+1. Download the ZIP file from [GitHub](https://github.com/JoseManuelPedraja/cf-football-bypass-prestashop/releases).  
+2. Copy the `cffootballbypass` folder into your PrestaShop modules directory.  
+3. From the **Back Office**, go to **Modules > Module Manager** and activate **CF Football Bypass**.  
+4. Configure the module under **Advanced Parameters > CF Football Bypass**, where you can set:  
+   - The checking interval  
+   - The cooldown period after disabling Cloudflare  
+   - The DNS records you want to manage  
 
 ---
 
-## 📖 Documentación
+## ⚙️ Requirements
 
-Si quieres usar el **cron externo**, sigue estos pasos:
+- PrestaShop 8 or higher  
+- Active Cloudflare account  
+- Cloudflare API access with permissions to manage DNS  
 
-1. Añade el siguiente código a tu archivo `.htaccess` ubicado en la carpeta `var/www/public_html/modules/`:
+---
+
+## 👨‍💻 Original Author & WordPress Support
+
+- **Original Author:** David Carrero ([@carrero](https://x.com/carrero))  
+- **Website:** [carrero.es](https://carrero.es)  
+- **Quick Contact:** [carrero.es/contacto](https://carrero.es/contacto/)  
+
+> ⚠️ Note: This module has been adapted from the original WordPress version to PrestaShop with the author's permission and is completely free.
+
+---
+
+## 📖 Documentation
+
+If you want to use an **external cron**, follow these steps:
+
+1. Add the following code to your `.htaccess` file located in `var/www/public_html/modules/`:
 
 ```apache
 <Files "cron.php">
@@ -58,4 +56,3 @@ Si quieres usar el **cron externo**, sigue estos pasos:
         Require all granted
     </If>
 </Files>
-
