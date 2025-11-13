@@ -46,13 +46,16 @@ El módulo obtiene el feed de [hayahora.futbol](https://hayahora.futbol/) y acti
 
 ---
 
-## 📖 Documentation
+## 📖 Documentación
 
- Si quereis usar el cron external: 
- Añadir esto a tu .htcaccess en la carpeta var/www/public_html/modules/ y añadir esto al final 
+Si quieres usar el **cron externo**, sigue estos pasos:
 
+1. Añade el siguiente código a tu archivo `.htaccess` ubicado en la carpeta `var/www/public_html/modules/`:
+
+```apache
 <Files "cron.php">
     <If "%{REQUEST_URI} =~ m#^/modules/cffootballbypass/cron\.php#">
         Require all granted
     </If>
 </Files>
+
