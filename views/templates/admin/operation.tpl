@@ -1,7 +1,15 @@
-{*
-* Operation template for CF Football Bypass
-* Location: views/templates/admin/operation.tpl
-*}
+/**
+ * 2007-2025 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ *
+ * @author    Jose Manuel Pedraja <tu@email.com>
+ * @copyright 2007-2025 PrestaShop SA
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
 
 <div class="row">
     <div class="col-lg-12">
@@ -32,7 +40,7 @@
                             </div>
                             <div class="panel-body">
                                 <p><strong>Dominio:</strong> {$domain|escape:'htmlall':'UTF-8'}</p>
-                                <p><strong>Zona Cloudflare:</strong> {if $settings.cloudflare_zone_id}{$settings.cloudflare_zone_id|truncate:8:'***'}{else}No configurada{/if}</p>
+                                <p><strong>Zona Cloudflare:</strong> {if $settings.cloudflare_zone_id}{$settings.cloudflare_zone_id|escape:'html':'UTF-8'|truncate:8:'***'}{else}No configurada{/if}</p>
                                 <p><strong>Tipo Auth:</strong> {if $settings.auth_type == 'token'}API Token{else}Global API Key{/if}</p>
                                 <p>
                                     <strong>¿Hay bloqueos generales?</strong> 

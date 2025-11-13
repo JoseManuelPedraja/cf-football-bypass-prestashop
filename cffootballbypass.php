@@ -1,4 +1,21 @@
 <?php
+/**
+ * 2007-2025 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * @author    Jose Manuel Pedraja <josemanuelpedraja@gmail.com>
+ * @copyright 2007-2025 PrestaShop SA
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -6,27 +23,26 @@ if (!defined('_PS_VERSION_')) {
 
 class CfFootballBypass extends Module
 {
-    private $fresh_window = 240 * 60; // 4h
     private $log_file_path;
 
     public function __construct()
     {
         $this->name = 'cffootballbypass';
         $this->tab = 'administration';
-        $this->version = '1.5.4';
+        $this->version = '1.5.5';
         $this->author = 'Jose Manuel Pedraja';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
             'min' => '8.1.0',
-            'max' => _PS_VERSION_
+            'max' => _PS_VERSION_,
         ];
         $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('CF Football Bypass');
-        $this->description = $this->l('Opera con Cloudflare para alternar Proxy (ON/CDN) y DNS Only (OFF) según bloqueos, con caché persistente de registros.');
-        $this->confirmUninstall = $this->l('¿Estás seguro de que deseas desinstalar este módulo?');
+        $this->description = $this->l('Operates with Cloudflare to toggle Proxy (ON/CDN) and DNS Only (OFF) based on blocks, with persistent record caching.');
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall this module?');
 
         $this->log_file_path = _PS_MODULE_DIR_ . $this->name . '/logs/cfb-actions.log';
     }
@@ -38,44 +54,18 @@ class CfFootballBypass extends Module
         }
 
         return parent::install()
-            && $this->registerHook('actionAdminControllerSetMedia')
-            && $this->installTab()
             && $this->createLogDirectory()
             && $this->setDefaultConfiguration()
-            && $this->createCronTask();
+            && $this->registerHook('actionCronJob');
     }
 
     public function uninstall()
     {
         return parent::uninstall()
-            && $this->uninstallTab()
-            && $this->removeCronTask()
             && $this->removeConfiguration();
     }
 
-    private function installTab()
-    {
-        $tab = new Tab();
-        $tab->active = 1;
-        $tab->class_name = 'AdminCfFootballBypass';
-        $tab->name = [];
-        foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = 'CF Football Bypass';
-        }
-        $tab->id_parent = (int)Tab::getIdFromClassName('AdminTools');
-        $tab->module = $this->name;
-        return $tab->add();
-    }
 
-    private function uninstallTab()
-    {
-        $id_tab = (int)Tab::getIdFromClassName('AdminCfFootballBypass');
-        if ($id_tab) {
-            $tab = new Tab($id_tab);
-            return $tab->delete();
-        }
-        return true;
-    }
 
     private function createLogDirectory()
     {
@@ -83,6 +73,7 @@ class CfFootballBypass extends Module
         if (!file_exists($log_dir)) {
             return mkdir($log_dir, 0755, true);
         }
+
         return true;
     }
 
@@ -92,6 +83,7 @@ class CfFootballBypass extends Module
         foreach ($defaults as $key => $value) {
             Configuration::updateValue('CFB_' . strtoupper($key), is_array($value) ? json_encode($value) : $value);
         }
+
         return true;
     }
 
@@ -103,44 +95,33 @@ class CfFootballBypass extends Module
             'DNS_CACHE_LAST_SYNC', 'LAST_CHECK', 'LAST_STATUS_GENERAL',
             'LAST_STATUS_DOMAIN', 'LAST_UPDATE', 'LOGGING_ENABLED',
             'LOG_RETENTION_DAYS', 'CRON_SECRET', 'BYPASS_ACTIVE',
-            'BYPASS_BLOCKED_IPS', 'BYPASS_CHECK_COOLDOWN', 'BYPASS_LAST_CHANGE'
+            'BYPASS_BLOCKED_IPS', 'BYPASS_CHECK_COOLDOWN', 'BYPASS_LAST_CHANGE',
         ];
-        
+
         foreach ($keys as $key) {
             Configuration::deleteByName('CFB_' . $key);
         }
-        return true;
-    }
 
-    private function createCronTask()
-    {
-        $cron_url = $this->context->shop->getBaseURL(true) . 'modules/' . $this->name . '/cron.php';
         return true;
     }
-
-    private function removeCronTask()
-    {
-        return true;
-    }
-    
 
     public function getContent()
     {
         $output = '';
-        
+
         if (Tools::isSubmit('submitCfbSettings')) {
             $output .= $this->postProcess();
         }
 
         $output .= $this->displayForm();
-        
+
         return $output;
     }
 
     private function postProcess()
     {
         $settings = $this->getSettings();
-        
+
         $settings['cloudflare_email'] = Tools::getValue('cloudflare_email');
         $settings['cloudflare_api_key'] = Tools::getValue('cloudflare_api_key');
         $settings['cloudflare_zone_id'] = Tools::getValue('cloudflare_zone_id');
@@ -159,102 +140,102 @@ class CfFootballBypass extends Module
 
         $trace = [];
         $test_result = $this->quickSettingsTest($settings, $trace);
-        
+
         if ($test_result) {
-            return $this->displayConfirmation($this->l('Configuración guardada correctamente. Conexión con Cloudflare OK.'));
+            return $this->displayConfirmation($this->l('Settings saved successfully. Cloudflare connection OK.'));
         } else {
-            return $this->displayError($this->l('Configuración guardada pero hay problemas de conexión: ') . implode(' | ', $trace));
+            return $this->displayError($this->l('Settings saved but there are connection issues: ') . implode(' | ', $trace));
         }
     }
 
     private function displayForm()
     {
         $settings = $this->getSettings();
-        
+
         $fields_form = [
             'form' => [
                 'legend' => [
-                    'title' => $this->l('Configuración CF Football Bypass'),
-                    'icon' => 'icon-cogs'
+                    'title' => $this->l('CF Football Bypass Settings'),
+                    'icon' => 'icon-cogs',
                 ],
                 'input' => [
                     [
                         'type' => 'select',
-                        'label' => $this->l('Tipo de autenticación'),
+                        'label' => $this->l('Authentication Type'),
                         'name' => 'auth_type',
                         'options' => [
                             'query' => [
                                 ['id' => 'global', 'name' => 'Global API Key'],
-                                ['id' => 'token', 'name' => 'API Token (Bearer)']
+                                ['id' => 'token', 'name' => 'API Token (Bearer)'],
                             ],
                             'id' => 'id',
-                            'name' => 'name'
+                            'name' => 'name',
                         ],
-                        'desc' => $this->l('Global API Key requiere email; API Token no.')
+                        'desc' => $this->l('Global API Key requires email; API Token does not.'),
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->l('Email Cloudflare'),
+                        'label' => $this->l('Cloudflare Email'),
                         'name' => 'cloudflare_email',
-                        'desc' => $this->l('Requerido solo para Global API Key')
+                        'desc' => $this->l('Required only for Global API Key'),
                     ],
                     [
                         'type' => 'password',
                         'label' => $this->l('API Key/Token'),
                         'name' => 'cloudflare_api_key',
-                        'desc' => $this->l('Tu API Key Global o Token de Cloudflare')
+                        'desc' => $this->l('Your Cloudflare Global API Key or Token'),
                     ],
                     [
                         'type' => 'text',
                         'label' => $this->l('Zone ID'),
                         'name' => 'cloudflare_zone_id',
-                        'desc' => $this->l('ID de la zona en Cloudflare')
+                        'desc' => $this->l('Zone ID in Cloudflare'),
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->l('Intervalo de comprobación (minutos)'),
+                        'label' => $this->l('Check Interval (minutes)'),
                         'name' => 'check_interval',
                         'class' => 'fixed-width-sm',
-                        'desc' => $this->l('Entre 5 y 60 minutos')
+                        'desc' => $this->l('Between 5 and 60 minutes'),
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->l('Cooldown tras desactivar (minutos)'),
+                        'label' => $this->l('Cooldown after deactivation (minutes)'),
                         'name' => 'bypass_check_cooldown',
                         'class' => 'fixed-width-sm',
-                        'desc' => $this->l('Tiempo de espera después de desactivar Cloudflare (5-1440 min)')
+                        'desc' => $this->l('Wait time after deactivating Cloudflare (5-1440 min)'),
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->l('Registro de acciones'),
+                        'label' => $this->l('Action Logging'),
                         'name' => 'logging_enabled',
                         'values' => [
-                            ['id' => 'active_on', 'value' => 1, 'label' => $this->l('Sí')],
-                            ['id' => 'active_off', 'value' => 0, 'label' => $this->l('No')]
-                        ]
+                            ['id' => 'active_on', 'value' => 1, 'label' => $this->l('Yes')],
+                            ['id' => 'active_off', 'value' => 0, 'label' => $this->l('No')],
+                        ],
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->l('Retención de logs (días)'),
+                        'label' => $this->l('Log Retention (days)'),
                         'name' => 'log_retention_days',
-                        'class' => 'fixed-width-sm'
+                        'class' => 'fixed-width-sm',
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->l('Resetear configuración'),
+                        'label' => $this->l('Reset Settings'),
                         'name' => 'reset_settings',
                         'values' => [
-                            ['id' => 'reset_on', 'value' => 1, 'label' => $this->l('Sí')],
-                            ['id' => 'reset_off', 'value' => 0, 'label' => $this->l('No')]
+                            ['id' => 'reset_on', 'value' => 1, 'label' => $this->l('Yes')],
+                            ['id' => 'reset_off', 'value' => 0, 'label' => $this->l('No')],
                         ],
-                        'desc' => $this->l('CUIDADO: Borra toda la configuración del módulo')
-                    ]
+                        'desc' => $this->l('WARNING: Deletes all module configuration'),
+                    ],
                 ],
                 'submit' => [
-                    'title' => $this->l('Guardar'),
-                    'name' => 'submitCfbSettings'
-                ]
-            ]
+                    'title' => $this->l('Save'),
+                    'name' => 'submitCfbSettings',
+                ],
+            ],
         ];
 
         $helper = new HelperForm();
@@ -279,15 +260,15 @@ class CfFootballBypass extends Module
                 'bypass_check_cooldown' => $settings['bypass_check_cooldown'],
                 'logging_enabled' => $settings['logging_enabled'],
                 'log_retention_days' => $settings['log_retention_days'],
-                'reset_settings' => 0
+                'reset_settings' => 0,
             ],
             'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id
+            'id_language' => $this->context->language->id,
         ];
 
         $form = $helper->generateForm([$fields_form]);
         $form .= $this->renderOperationPanel();
-        
+
         return $form;
     }
 
@@ -296,60 +277,76 @@ class CfFootballBypass extends Module
         $settings = $this->getSettings();
         $domain = $this->getSiteDomain();
         $calc = $this->computeStatusesFromJson();
-        
+
         $cache = json_decode($settings['dns_records_cache'], true) ?: [];
         $selected = json_decode($settings['selected_records'], true) ?: [];
-        
+
+        $cron_token = $settings['cron_secret'];
+        if (empty($cron_token)) {
+            $cron_token = $this->generateCronSecret();
+            $settings['cron_secret'] = $cron_token;
+            $this->saveSettings($settings);
+        }
+
+        $cron_url = $this->context->shop->getBaseURL(true) . 'modules/' . $this->name . '/cron.php?token=' . $cron_token;
+
         $html = '<div class="panel">';
-        $html .= '<div class="panel-heading"><h3>Operación</h3></div>';
+        $html .= '<div class="panel-heading"><h3>' . $this->l('Operation') . '</h3></div>';
         $html .= '<div class="panel-body">';
-        
-        $html .= '<p><strong>Dominio:</strong> ' . htmlspecialchars($domain) . '</p>';
-        $html .= '<p><strong>Estado general (hay bloqueos):</strong> ' . htmlspecialchars($calc['general']) . '</p>';
-        $html .= '<p><strong>¿Dominio bloqueado?:</strong> ' . htmlspecialchars($calc['domain']) . '</p>';
-        
+
+        $html .= '<div class="alert alert-info">';
+        $html .= '<h4>' . $this->l('Cron Job URL') . '</h4>';
+        $html .= '<p>' . $this->l('Configure your cron job or external service (like EasyCron) with this URL:') . '</p>';
+        $html .= '<input type="text" class="form-control" readonly value="' . htmlspecialchars($cron_url, ENT_QUOTES, 'UTF-8') . '" onclick="this.select();" style="font-family:monospace;">';
+        $html .= '<p class="help-block">' . $this->l('Recommended: Every 15 minutes') . '</p>';
+        $html .= '</div>';
+
+        $html .= '<p><strong>' . $this->l('Domain') . ':</strong> ' . htmlspecialchars($domain, ENT_QUOTES, 'UTF-8') . '</p>';
+        $html .= '<p><strong>' . $this->l('General status (blocks exist)') . ':</strong> ' . htmlspecialchars($calc['general'], ENT_QUOTES, 'UTF-8') . '</p>';
+        $html .= '<p><strong>' . $this->l('Domain blocked?') . ':</strong> ' . htmlspecialchars($calc['domain'], ENT_QUOTES, 'UTF-8') . '</p>';
+
         if (!empty($cache)) {
-            $html .= '<h4>Registros DNS</h4>';
+            $html .= '<h4>' . $this->l('DNS Records') . '</h4>';
             $html .= '<div id="dns-table-container">';
             $html .= '<table class="table">';
-            $html .= '<thead><tr><th>Seleccionar</th><th>Nombre</th><th>Tipo</th><th>Contenido</th><th>Proxy</th><th>TTL</th></tr></thead>';
+            $html .= '<thead><tr><th>' . $this->l('Select') . '</th><th>' . $this->l('Name') . '</th><th>' . $this->l('Type') . '</th><th>' . $this->l('Content') . '</th><th>' . $this->l('Proxy') . '</th><th>TTL</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($cache as $record) {
                 $checked = in_array($record['id'], $selected) ? 'checked' : '';
                 $proxy_status = isset($record['proxied']) ? ($record['proxied'] ? 'ON' : 'OFF') : '—';
                 $html .= '<tr>';
-                $html .= '<td><input type="checkbox" name="selected_records[]" value="' . htmlspecialchars($record['id']) . '" ' . $checked . '></td>';
-                $html .= '<td>' . htmlspecialchars($record['name']) . '</td>';
-                $html .= '<td>' . htmlspecialchars($record['type']) . '</td>';
-                $html .= '<td>' . htmlspecialchars($record['content']) . '</td>';
-                $html .= '<td>' . htmlspecialchars($proxy_status) . '</td>';
-                $html .= '<td>' . htmlspecialchars($record['ttl']) . '</td>';
+                $html .= '<td><input type="checkbox" name="selected_records[]" value="' . htmlspecialchars($record['id'], ENT_QUOTES, 'UTF-8') . '" ' . $checked . '></td>';
+                $html .= '<td>' . htmlspecialchars($record['name'], ENT_QUOTES, 'UTF-8') . '</td>';
+                $html .= '<td>' . htmlspecialchars($record['type'], ENT_QUOTES, 'UTF-8') . '</td>';
+                $html .= '<td>' . htmlspecialchars($record['content'], ENT_QUOTES, 'UTF-8') . '</td>';
+                $html .= '<td>' . htmlspecialchars($proxy_status, ENT_QUOTES, 'UTF-8') . '</td>';
+                $html .= '<td>' . htmlspecialchars($record['ttl'], ENT_QUOTES, 'UTF-8') . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
             $html .= '</div>';
         }
-        
+
         $html .= '<div class="btn-group" style="margin-top:15px;">';
-        $html .= '<button type="button" class="btn btn-primary" onclick="testConnection()">Probar conexión y cargar DNS</button>';
-        $html .= '<button type="button" class="btn btn-default" onclick="manualCheck()">Comprobación manual</button>';
-        $html .= '<button type="button" class="btn btn-warning" onclick="forceOff()">Forzar Proxy OFF</button>';
-        $html .= '<button type="button" class="btn btn-success" onclick="forceOn()">Forzar Proxy ON</button>';
+        $html .= '<button type="button" class="btn btn-primary" onclick="testConnection()">' . $this->l('Test connection and load DNS') . '</button>';
+        $html .= '<button type="button" class="btn btn-default" onclick="manualCheck()">' . $this->l('Manual check') . '</button>';
+        $html .= '<button type="button" class="btn btn-warning" onclick="forceOff()">' . $this->l('Force Proxy OFF') . '</button>';
+        $html .= '<button type="button" class="btn btn-success" onclick="forceOn()">' . $this->l('Force Proxy ON') . '</button>';
         $html .= '</div>';
-        
-        $html .= '<div id="cfb-console" class="alert alert-info" style="margin-top:15px;"><strong>Consola:</strong><pre id="console-output" style="max-height:300px;overflow-y:auto;"></pre></div>';
-        
+
+        $html .= '<div id="cfb-console" class="alert alert-info" style="margin-top:15px;"><strong>' . $this->l('Console') . ':</strong><pre id="console-output" style="max-height:300px;overflow-y:auto;"></pre></div>';
+
         $html .= '</div></div>';
-        
+
         $html .= $this->getJavaScript();
-        
+
         return $html;
     }
 
     private function getJavaScript()
     {
         $ajax_url = $this->context->link->getModuleLink($this->name, 'ajax');
-        
+
         return '
         <script>
         function addToConsole(message) {
@@ -374,12 +371,12 @@ class CfFootballBypass extends Module
 
         function testConnection() {
             clearConsole();
-            addToConsole("Probando conexión...");
-            
+            addToConsole("' . $this->l('Testing connection...') . '");
+
             var selected = getSelectedRecords();
             var ajaxUrl = "' . $ajax_url . '";
             addToConsole("URL: " + ajaxUrl);
-            
+
             fetch(ajaxUrl, {
                 method: "POST",
                 headers: {
@@ -393,17 +390,17 @@ class CfFootballBypass extends Module
             })
             .then(text => {
                 if (!text || text.trim() === "") {
-                    addToConsole("ERROR: Respuesta vacía del servidor");
+                    addToConsole("' . $this->l('ERROR: Empty server response') . '");
                     return;
                 }
-                
+
                 addToConsole("Response: " + text.substring(0, 300));
-                
+
                 try {
                     var data = JSON.parse(text);
-                    
+
                     if (data.success) {
-                        addToConsole("Conexión OK");
+                        addToConsole("' . $this->l('Connection OK') . '");
                         if (data.log && data.log.length) {
                             data.log.forEach(line => addToConsole(line));
                         }
@@ -414,27 +411,27 @@ class CfFootballBypass extends Module
                             }
                         }
                     } else {
-                        addToConsole("Error: " + (data.message || "Error desconocido"));
+                        addToConsole("' . $this->l('Error') . ': " + (data.message || "' . $this->l('Unknown error') . '"));
                         if (data.log && data.log.length) {
                             data.log.forEach(line => addToConsole(line));
                         }
                     }
                 } catch (e) {
-                    addToConsole("ERROR al parsear JSON: " + e.message);
+                    addToConsole("' . $this->l('ERROR parsing JSON') . ': " + e.message);
                 }
             })
             .catch(error => {
-                addToConsole("Error de red: " + error);
+                addToConsole("' . $this->l('Network error') . ': " + error);
             });
         }
 
         function manualCheck() {
             clearConsole();
-            addToConsole("Ejecutando comprobación manual...");
-            
+            addToConsole("' . $this->l('Running manual check...') . '");
+
             var selected = getSelectedRecords();
             var ajaxUrl = "' . $ajax_url . '";
-            
+
             fetch(ajaxUrl, {
                 method: "POST",
                 headers: {
@@ -448,46 +445,46 @@ class CfFootballBypass extends Module
             })
             .then(text => {
                 if (!text || text.trim() === "") {
-                    addToConsole("ERROR: Respuesta vacía del servidor");
+                    addToConsole("' . $this->l('ERROR: Empty server response') . '");
                     return;
                 }
-                
+
                 addToConsole("Response: " + text.substring(0, 300));
-                
+
                 try {
                     var data = JSON.parse(text);
-                    
+
                     if (data.success) {
-                        addToConsole("Comprobación completada");
+                        addToConsole("' . $this->l('Check completed') . '");
                         if (data.log && data.log.length) {
                             data.log.forEach(line => addToConsole(line));
                         }
                         addToConsole("General: " + (data.general || "—"));
-                        addToConsole("Dominio: " + (data.domain || "—"));
+                        addToConsole("Domain: " + (data.domain || "—"));
                     } else {
-                        addToConsole("Error: " + (data.message || "Error desconocido"));
+                        addToConsole("' . $this->l('Error') . ': " + (data.message || "' . $this->l('Unknown error') . '"));
                     }
                 } catch (e) {
-                    addToConsole("ERROR al parsear JSON: " + e.message);
+                    addToConsole("' . $this->l('ERROR parsing JSON') . ': " + e.message);
                 }
             })
             .catch(error => {
-                addToConsole("Error: " + error);
+                addToConsole("' . $this->l('Error') . ': " + error);
             });
         }
 
         function forceOff() {
             clearConsole();
-            addToConsole("Forzando Proxy OFF...");
-            
+            addToConsole("' . $this->l('Forcing Proxy OFF...') . '");
+
             var selected = getSelectedRecords();
             if (selected.length === 0) {
-                addToConsole("ERROR: No hay registros seleccionados");
+                addToConsole("' . $this->l('ERROR: No records selected') . '");
                 return;
             }
-            
+
             var ajaxUrl = "' . $ajax_url . '";
-            
+
             fetch(ajaxUrl, {
                 method: "POST",
                 headers: {
@@ -501,17 +498,17 @@ class CfFootballBypass extends Module
             })
             .then(text => {
                 if (!text || text.trim() === "") {
-                    addToConsole("ERROR: Respuesta vacía del servidor");
+                    addToConsole("' . $this->l('ERROR: Empty server response') . '");
                     return;
                 }
-                
+
                 addToConsole("Response: " + text.substring(0, 300));
-                
+
                 try {
                     var data = JSON.parse(text);
-                    
+
                     if (data.success) {
-                        addToConsole("Proxy OFF aplicado");
+                        addToConsole("' . $this->l('Proxy OFF applied') . '");
                         if (data.message) addToConsole(data.message);
                         if (data.log && data.log.length) {
                             data.log.forEach(line => addToConsole(line));
@@ -523,29 +520,29 @@ class CfFootballBypass extends Module
                             }
                         }
                     } else {
-                        addToConsole("Error: " + (data.message || "Error desconocido"));
+                        addToConsole("' . $this->l('Error') . ': " + (data.message || "' . $this->l('Unknown error') . '"));
                     }
                 } catch (e) {
-                    addToConsole("ERROR al parsear JSON: " + e.message);
+                    addToConsole("' . $this->l('ERROR parsing JSON') . ': " + e.message);
                 }
             })
             .catch(error => {
-                addToConsole("Error: " + error);
+                addToConsole("' . $this->l('Error') . ': " + error);
             });
         }
 
         function forceOn() {
             clearConsole();
-            addToConsole("Forzando Proxy ON...");
-            
+            addToConsole("' . $this->l('Forcing Proxy ON...') . '");
+
             var selected = getSelectedRecords();
             if (selected.length === 0) {
-                addToConsole("ERROR: No hay registros seleccionados");
+                addToConsole("' . $this->l('ERROR: No records selected') . '");
                 return;
             }
-            
+
             var ajaxUrl = "' . $ajax_url . '";
-            
+
             fetch(ajaxUrl, {
                 method: "POST",
                 headers: {
@@ -559,17 +556,17 @@ class CfFootballBypass extends Module
             })
             .then(text => {
                 if (!text || text.trim() === "") {
-                    addToConsole("ERROR: Respuesta vacía del servidor");
+                    addToConsole("' . $this->l('ERROR: Empty server response') . '");
                     return;
                 }
-                
+
                 addToConsole("Response: " + text.substring(0, 300));
-                
+
                 try {
                     var data = JSON.parse(text);
-                    
+
                     if (data.success) {
-                        addToConsole("Proxy ON aplicado");
+                        addToConsole("' . $this->l('Proxy ON applied') . '");
                         if (data.message) addToConsole(data.message);
                         if (data.log && data.log.length) {
                             data.log.forEach(line => addToConsole(line));
@@ -581,25 +578,24 @@ class CfFootballBypass extends Module
                             }
                         }
                     } else {
-                        addToConsole("Error: " + (data.message || "Error desconocido"));
+                        addToConsole("' . $this->l('Error') . ': " + (data.message || "' . $this->l('Unknown error') . '"));
                     }
                 } catch (e) {
-                    addToConsole("ERROR al parsear JSON: " + e.message);
+                    addToConsole("' . $this->l('ERROR parsing JSON') . ': " + e.message);
                 }
             })
             .catch(error => {
-                addToConsole("Error: " + error);
+                addToConsole("' . $this->l('Error') . ': " + error);
             });
         }
         </script>';
     }
 
-    // MÉTODOS PÚBLICOS
     public function getSettings()
     {
         $settings = [];
         $defaults = $this->getDefaultSettings();
-        
+
         foreach ($defaults as $key => $default) {
             $value = Configuration::get('CFB_' . strtoupper($key));
             if ($value === false) {
@@ -607,7 +603,7 @@ class CfFootballBypass extends Module
             }
             $settings[$key] = $value;
         }
-        
+
         return $settings;
     }
 
@@ -660,7 +656,7 @@ class CfFootballBypass extends Module
         }
     }
 
-    private function logEvent($type, $message, $context = [])
+    public function logEvent($type, $message, $context = [])
     {
         $settings = $this->getSettings();
         if (!$settings['logging_enabled']) {
@@ -677,7 +673,7 @@ class CfFootballBypass extends Module
             'type' => $type,
             'message' => $message,
         ];
-        
+
         if (!empty($context)) {
             $entry['context'] = $context;
         }
@@ -689,15 +685,18 @@ class CfFootballBypass extends Module
     public function quickSettingsTest($settings, &$trace)
     {
         if (empty($settings['cloudflare_api_key'])) {
-            $trace[] = 'Falta API Key/Token.';
+            $trace[] = 'Missing API Key/Token.';
+
             return false;
         }
         if (empty($settings['cloudflare_zone_id'])) {
-            $trace[] = 'Falta Zone ID.';
+            $trace[] = 'Missing Zone ID.';
+
             return false;
         }
         if ($settings['auth_type'] === 'global' && empty($settings['cloudflare_email'])) {
-            $trace[] = 'Falta email para Global API Key.';
+            $trace[] = 'Missing email for Global API Key.';
+
             return false;
         }
 
@@ -711,32 +710,35 @@ class CfFootballBypass extends Module
 
         $response = $this->makeHttpRequest($url, 'GET', $headers);
         if (!$response || !$response['success']) {
-            $trace[] = 'Error de autenticación: ' . ($response['error'] ?? 'desconocido');
+            $trace[] = 'Authentication error: ' . ($response['error'] ?? 'unknown');
+
             return false;
         }
 
         $url = 'https://api.cloudflare.com/client/v4/zones/' . $settings['cloudflare_zone_id'];
         $response = $this->makeHttpRequest($url, 'GET', $headers);
         if (!$response || !$response['success']) {
-            $trace[] = 'Error accediendo a la zona: ' . ($response['error'] ?? 'desconocido');
+            $trace[] = 'Error accessing zone: ' . ($response['error'] ?? 'unknown');
+
             return false;
         }
 
-        $trace[] = 'Conexión OK y lectura de DNS disponible.';
+        $trace[] = 'Connection OK and DNS read available.';
+
         return true;
     }
 
     private function getApiHeaders($settings)
     {
         $headers = ['Content-Type: application/json'];
-        
+
         if ($settings['auth_type'] === 'global') {
             $headers[] = 'X-Auth-Email: ' . $settings['cloudflare_email'];
             $headers[] = 'X-Auth-Key: ' . $settings['cloudflare_api_key'];
         } else {
             $headers[] = 'Authorization: Bearer ' . $settings['cloudflare_api_key'];
         }
-        
+
         return $headers;
     }
 
@@ -747,31 +749,31 @@ class CfFootballBypass extends Module
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
+
         if ($method === 'POST' || $method === 'PUT') {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
             if ($data) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             }
         }
-        
+
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($response === false) {
             return ['success' => false, 'error' => 'HTTP request failed'];
         }
-        
+
         $json = json_decode($response, true);
         if (!$json) {
             return ['success' => false, 'error' => 'Invalid JSON response'];
         }
-        
+
         return [
             'success' => $http_code === 200 && !empty($json['success']),
             'data' => $json,
-            'error' => !empty($json['errors'][0]['message']) ? $json['errors'][0]['message'] : null
+            'error' => !empty($json['errors'][0]['message']) ? $json['errors'][0]['message'] : null,
         ];
     }
 
@@ -779,14 +781,14 @@ class CfFootballBypass extends Module
     {
         $domain = $this->getSiteDomain();
         $data = $this->fetchStatusJson();
-        
+
         if ($data === null) {
             return ['general' => 'NO', 'domain' => 'NO', 'domain_ips' => [], 'last_update' => ''];
         }
 
         $map = $data['ip_map'] ?? [];
         $general_blocked = false;
-        
+
         foreach ($map as $ip => $blocked) {
             if ($blocked === true) {
                 $general_blocked = true;
@@ -796,7 +798,7 @@ class CfFootballBypass extends Module
 
         $resolved_ips = $this->resolveDomainIps($domain);
         $domain_blocked = false;
-        
+
         foreach ($resolved_ips as $ip) {
             if (isset($map[$ip]) && $map[$ip] === true) {
                 $domain_blocked = true;
@@ -805,8 +807,8 @@ class CfFootballBypass extends Module
         }
 
         return [
-            'general' => $general_blocked ? 'SÍ' : 'NO',
-            'domain' => $domain_blocked ? 'SÍ' : 'NO',
+            'general' => $general_blocked ? 'YES' : 'NO',
+            'domain' => $domain_blocked ? 'YES' : 'NO',
             'domain_ips' => $resolved_ips,
             'last_update' => $data['last_update'] ?? '',
         ];
@@ -816,7 +818,7 @@ class CfFootballBypass extends Module
     {
         $url = 'https://hayahora.futbol/estado/data.json';
         $response = $this->makeHttpRequest($url);
-        
+
         if (!$response || !$response['success']) {
             return null;
         }
@@ -824,7 +826,7 @@ class CfFootballBypass extends Module
         $json = $response['data'];
         $last_update_str = !empty($json['lastUpdate']) ? $json['lastUpdate'] : '';
         $map = $this->extractIpBlockMap($json);
-        
+
         return [
             'ip_map' => $map,
             'last_update' => $last_update_str,
@@ -834,7 +836,7 @@ class CfFootballBypass extends Module
     private function extractIpBlockMap($json)
     {
         $map = [];
-        
+
         if (isset($json['ips']) && is_array($json['ips'])) {
             foreach ($json['ips'] as $ip => $status) {
                 if (is_bool($status)) {
@@ -844,14 +846,14 @@ class CfFootballBypass extends Module
                 }
             }
         }
-        
+
         return $map;
     }
 
     private function resolveDomainIps($domain)
     {
         $ips = [];
-        
+
         $a_records = dns_get_record($domain, DNS_A);
         if (is_array($a_records)) {
             foreach ($a_records as $record) {
@@ -860,7 +862,7 @@ class CfFootballBypass extends Module
                 }
             }
         }
-        
+
         $aaaa_records = dns_get_record($domain, DNS_AAAA);
         if (is_array($aaaa_records)) {
             foreach ($aaaa_records as $record) {
@@ -869,7 +871,7 @@ class CfFootballBypass extends Module
                 }
             }
         }
-        
+
         return array_unique($ips);
     }
 
@@ -880,7 +882,7 @@ class CfFootballBypass extends Module
         $general = $calc['general'];
         $domain = $calc['domain'];
         $blocked_domain_ips = $calc['domain_ips'] ?? [];
-        
+
         $stored_blocked = json_decode($settings['bypass_blocked_ips'], true) ?: [];
         $now_ts = time();
         $prev_active = !empty($settings['bypass_active']);
@@ -888,7 +890,7 @@ class CfFootballBypass extends Module
         $cooldown_minutes = max(5, min(1440, (int)$settings['bypass_check_cooldown']));
         $cooldown_seconds = $cooldown_minutes * 60;
 
-        $should_disable = ($domain === 'SÍ');
+        $should_disable = ($domain === 'YES');
         $reason = $should_disable ? 'domain_blocked' : 'domain_clear';
 
         if (!$should_disable && $prev_active) {
@@ -904,7 +906,7 @@ class CfFootballBypass extends Module
 
         $desired_proxied = !$should_disable;
         $updated = 0;
-        
+
         $selected_records = json_decode($settings['selected_records'], true) ?: [];
         if (!empty($selected_records)) {
             $this->refreshDnsCache();
@@ -917,8 +919,8 @@ class CfFootballBypass extends Module
         }
 
         $settings['last_check'] = date('Y-m-d H:i:s');
-        $settings['last_status_general'] = ($general === 'SÍ') ? 'SI' : 'NO';
-        $settings['last_status_domain'] = ($domain === 'SÍ') ? 'SI' : 'NO';
+        $settings['last_status_general'] = ($general === 'YES') ? 'YES' : 'NO';
+        $settings['last_status_domain'] = ($domain === 'YES') ? 'YES' : 'NO';
         $settings['last_update'] = $calc['last_update'] ?? $settings['last_update'];
 
         if ($should_disable) {
@@ -937,12 +939,12 @@ class CfFootballBypass extends Module
 
         $this->saveSettings($settings);
 
-        $this->logEvent('cron', 'Auto-check ejecutado', [
+        $this->logEvent('cron', 'Auto-check executed', [
             'general' => $settings['last_status_general'],
             'domain' => $settings['last_status_domain'],
             'updated_records' => $updated,
             'bypass_active' => $settings['bypass_active'],
-            'reason' => $reason
+            'reason' => $reason,
         ]);
     }
 
@@ -950,13 +952,13 @@ class CfFootballBypass extends Module
     {
         $settings = $this->getSettings();
         $records = $this->fetchDnsRecords(['A', 'AAAA', 'CNAME']);
-        
+
         if (!empty($records)) {
             $settings['dns_records_cache'] = json_encode($records);
             $settings['dns_cache_last_sync'] = date('Y-m-d H:i:s');
             $this->saveSettings($settings);
         }
-        
+
         return $records;
     }
 
@@ -969,7 +971,7 @@ class CfFootballBypass extends Module
 
         $headers = $this->getApiHeaders($settings);
         $url = 'https://api.cloudflare.com/client/v4/zones/' . $settings['cloudflare_zone_id'] . '/dns_records?per_page=100';
-        
+
         $response = $this->makeHttpRequest($url, 'GET', $headers);
         if (!$response || !$response['success']) {
             return [];
@@ -1001,7 +1003,7 @@ class CfFootballBypass extends Module
     {
         $settings = $this->getSettings();
         $cache = json_decode($settings['dns_records_cache'], true) ?: [];
-        
+
         $existing = null;
         foreach ($cache as $record) {
             if (!empty($record['id']) && $record['id'] === $record_id) {
@@ -1014,14 +1016,14 @@ class CfFootballBypass extends Module
             $this->refreshDnsCache();
             $settings = $this->getSettings();
             $cache = json_decode($settings['dns_records_cache'], true) ?: [];
-            
+
             foreach ($cache as $record) {
                 if (!empty($record['id']) && $record['id'] === $record_id) {
                     $existing = $record;
                     break;
                 }
             }
-            
+
             if (!$existing) {
                 return false;
             }
@@ -1038,7 +1040,7 @@ class CfFootballBypass extends Module
 
         $headers = $this->getApiHeaders($settings);
         $url = 'https://api.cloudflare.com/client/v4/zones/' . $settings['cloudflare_zone_id'] . '/dns_records/' . $record_id;
-        
+
         $ttl = (int)($existing['ttl'] ?? 1);
         if ($proxied_on) {
             $ttl = 1;
@@ -1049,7 +1051,7 @@ class CfFootballBypass extends Module
             'name' => $existing['name'] ?? '',
             'content' => $existing['content'] ?? '',
             'ttl' => $ttl,
-            'proxied' => (bool)$proxied_on
+            'proxied' => (bool)$proxied_on,
         ]);
 
         $response = $this->makeHttpRequest($url, 'PUT', $headers, $payload);

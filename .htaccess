@@ -1,0 +1,10 @@
+# Deny access to module files
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_URI} !^/index\.php
+    RewriteCond %{REQUEST_URI} !/[^/]+\.(gif|css|js|jpe?g|png|svg|woff|woff2|eot|ttf)$ [NC]
+    RewriteRule .* - [F]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
